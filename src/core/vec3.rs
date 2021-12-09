@@ -1,4 +1,10 @@
 use std::ops;
+use crate::core::utils::{
+    clamp,
+    random_double,
+    random_double_range
+};
+
 pub struct Vec3 {
     pub x: f32,
     pub y: f32,
@@ -33,6 +39,16 @@ impl Vec3 {
         println!("{} {} {}", self.x(), self.y(), self.z());
     }
 
+    pub fn print_color(&self, samples_per_pixel: i64) -> () {
+        let scale = 1.0/samples_per_pixel as f32;
+
+        let r_final = (256.0*clamp((self.r()*scale).sqrt(), 0.0, 0.999)) as i64;
+        let g_final = (256.0*clamp((self.g()*scale).sqrt(), 0.0, 0.999)) as i64;
+        let b_final = (256.0*clamp((self.b()*scale).sqrt(), 0.0, 0.999)) as i64;
+
+        println!("{} {} {}", r_final, g_final, b_final);
+    }
+
     pub fn length(self) -> f32 {
         return (self.length_squared()).sqrt();
     }
@@ -53,6 +69,37 @@ impl Vec3 {
 
     pub fn unit_vector(v: Vec3) -> Vec3 {
         return v/v.length();
+    }
+
+    pub fn random() -> Vec3 {
+        return Vec3::new(random_double(), random_double(), random_double());
+    }
+
+    pub fn random_range(min: f32, max: f32) -> Vec3 {
+        return Vec3::new(random_double_range(min, max), random_double_range(min, max), random_double_range(min, max));
+    }
+
+    pub fn random_in_unit_sphere() -> Vec3 {
+        loop {
+            let p = Vec3::random_range(-1.0, 1.0);
+            if p.length_squared() >= 1.0 {
+                continue;
+            }
+            return p;
+        }
+    }
+
+    pub fn random_in_hemisphere(normal: Vec3) -> Vec3 {
+        let in_unit_sphere = Vec3::random_in_unit_sphere();
+        if Vec3::dot(in_unit_sphere, normal) > 0.0 {
+            return in_unit_sphere;
+        } else {
+            return -in_unit_sphere;
+        }
+    }
+
+    pub fn random_unit_vector() -> Vec3 {
+        return Vec3::unit_vector(Vec3::random_in_unit_sphere());
     }
 }
 
@@ -95,6 +142,14 @@ impl ops::AddAssign<f32> for Vec3 {
         self.x += i;
         self.y += i;
         self.z += i;
+    }
+}
+
+impl ops::AddAssign<Vec3> for Vec3 {
+    fn add_assign(&mut self, i: Vec3) {
+       self.x += i.x();
+       self.y += i.y();
+       self.z += i.z(); 
     }
 }
 
