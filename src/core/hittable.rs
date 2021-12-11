@@ -1,9 +1,20 @@
-use crate::core::{ vec3::{ Vec3, Point3 }, ray::Ray };
+use crate::{
+    core::{
+        vec3::{
+            Vec3,
+            Point3,
+            Color
+        },
+        ray::Ray,
+        material::Material
+    }
+};
 
 #[derive(Clone, Copy)]
 pub struct HitRecord {
     pub impact: Point3,
     pub normal: Vec3,
+    pub material: Material,
     pub hit_t: f32,
     pub front_face: bool
 }
@@ -13,6 +24,7 @@ impl HitRecord {
         Self {
             impact: Point3::new(0f32,0f32,0f32),
             normal: Vec3::new(0f32, 0f32, 0f32),
+            material: Material::Lambertian { albedo: Color::new(0f32, 0f32, 0f32) },
             hit_t: 0f32,
             front_face: true
         }

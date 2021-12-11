@@ -1,15 +1,28 @@
-use crate::core::{ hittable::{ HitRecord, Hittable }, vec3::{ Vec3, Point3 }, ray::Ray };
+use crate::core::{
+    hittable::{
+        HitRecord,
+        Hittable
+    },
+    vec3::{
+        Vec3,
+        Point3
+    },
+    material::Material,
+    ray::Ray
+};
 
 pub struct Sphere {
     pub center: Point3,
     pub radius: f32,
+    pub material: Material
 }
 
 impl Sphere {
-    pub fn new(cen: Point3, r: f32) -> Sphere {
+    pub fn new(cen: Point3, r: f32, m: Material) -> Sphere {
         Sphere {
             center: cen,
-            radius: r
+            radius: r,
+            material: m
         }
     }
 }
@@ -27,17 +40,18 @@ impl Hittable for Sphere {
 
         // Find the nearest root that lies in the acceptable range
         let root: f32 = (-2f32*b - sqrtd)/(2f32*a);
-        if root < t_min || root > t_max {
+        if root <= t_min || root >= t_max {
             let root = (-2f32*b + sqrtd)/(2f32*a);
-            if root < t_min || root > t_max {
+            if root <= t_min || root >= t_max {
                 return false;
             }
         }
 
         rec.hit_t = root;
-        rec.impact = ray.at(rec.hit_t);
-        let outward_normal: Vec3 = (rec.impact - self.center)/self.radius;
+        rec.impact = ray.at(root);
+        let outward_normal: Vec3 = (ray.at(root) - self.center)/self.radius;
         rec.set_face_normal(ray, outward_normal);
+        rec.material = self.material;
         return true;
     }
 }

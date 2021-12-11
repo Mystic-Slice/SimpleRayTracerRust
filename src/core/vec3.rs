@@ -5,6 +5,7 @@ use crate::core::utils::{
     random_double_range
 };
 
+#[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub struct Vec3 {
     pub x: f32,
     pub y: f32,
@@ -54,7 +55,7 @@ impl Vec3 {
     }
 
     pub fn length_squared(self) -> f32 {
-        return self.x*self.x + self.y*self.y + self.z*self.z;
+        return Vec3::dot(self, self);
     }
 
     pub fn dot(u: Vec3, v: Vec3) -> f32 {
@@ -82,10 +83,9 @@ impl Vec3 {
     pub fn random_in_unit_sphere() -> Vec3 {
         loop {
             let p = Vec3::random_range(-1.0, 1.0);
-            if p.length_squared() >= 1.0 {
-                continue;
+            if p.length_squared() < 1.0 {
+                return p;
             }
-            return p;
         }
     }
 
@@ -98,16 +98,39 @@ impl Vec3 {
         }
     }
 
+    pub fn random_in_unit_disk() -> Vec3 {
+        loop {
+            let p = Vec3::new(random_double_range(-1.0, 1.0), random_double_range(-1.0, 1.0), 0.0);
+            if p.length_squared() < 1.0 {
+                return p;
+            }
+        }
+    }
+
     pub fn random_unit_vector() -> Vec3 {
         return Vec3::unit_vector(Vec3::random_in_unit_sphere());
     }
-}
 
-impl Copy for Vec3 {}
+    pub fn near_zero(&self) -> bool {
+        let s = 1e-8;
+        return (f32::abs(self.x()) < s) && (f32::abs(self.y()) < s) && (f32::abs(self.z()) < s);
+    }
 
-impl Clone for Vec3 {
-    fn clone(&self) -> Vec3 {
-        *self
+    pub fn reflect(v: Vec3, n: Vec3) -> Vec3 {
+        return v - n*2.0*Vec3::dot(v,n);
+    }
+
+    pub fn refract(v: &Vec3, n: &Vec3, ni_over_nt: f32, refracted: &mut Vec3) -> bool {
+        let uv = Vec3::unit_vector(*v);
+        let dt = Vec3::dot(uv, *n);
+        let discriminant = 1.0 - ni_over_nt * ni_over_nt * (1.0 - dt * dt);
+
+        if discriminant > 0.0 {
+            *refracted = ni_over_nt * (uv - *n * dt) - *n * discriminant.sqrt();
+            return true;
+        } else {
+            return false;
+        }
     }
 }
 
@@ -194,6 +217,13 @@ impl ops::Mul<Vec3> for f32 {
     type Output = Vec3;
     fn mul(self, i: Vec3) -> Vec3 {
         return i*self;
+    }
+}
+
+impl ops::Mul<Vec3> for Vec3 {
+    type Output = Vec3;
+    fn mul(self, rhs: Self) -> Vec3 {
+        return Vec3::new(self.x() * rhs.x(), self.y() * rhs.y(), self.z() * rhs.z());
     }
 }
 

@@ -1,5 +1,6 @@
 use crate::core::vec3::{ Point3, Vec3 };
 
+#[derive(Clone, Copy)]
 pub struct Ray { // a + tb
     pub origin: Point3, // a
     pub direction: Vec3, // b
@@ -19,14 +20,5 @@ impl Ray {
 
     pub fn at(&self, t: f32) -> Point3 {
         return self.origin() + self.direction() * t;
-    }
-}
-
-
-impl Copy for Ray {}
-
-impl Clone for Ray {
-    fn clone(&self) -> Ray {
-        *self
     }
 }
